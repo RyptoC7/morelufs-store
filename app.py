@@ -1,19 +1,22 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-import json
+from flask import Flask, send_file, jsonify, request, send_from_directory
 import os
 import requests
 import logging
 from datetime import datetime
+from dotenv import load_dotenv
+# Для Railway - порт из переменных окружения
+port = int(os.environ.get("PORT", 5000))
 
-app = Flask(__name__)
-CORS(app)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=port, debug=False)
+# Загружаем переменные окружения
+load_dotenv()
+
+app = Flask(__name__, static_folder='static')
 
 # Конфигурация
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', 'YOUR_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID', 'YOUR_CHAT_ID')
-YOOKASSA_SHOP_ID = os.getenv('YOOKASSA_SHOP_ID', '')
-YOOKASSA_SECRET_KEY = os.getenv('YOOKASSA_SECRET_KEY', '')
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -41,7 +44,7 @@ def format_order_message(order_data):
     delivery = order_data['delivery']
     
     # Формируем список товаров
-    items_text = chr(10).join([
+    items_text = "\n".join([
         f"• {item['title']} (Размер: {item['size']}) × {item['quantity']} - {item['price'] * item['quantity']} ₽" 
         for item in items
     ])
@@ -79,6 +82,32 @@ def format_order_message(order_data):
 <i>🕒 {order_data.get('timestamp', '')}</i>"""
     
     return message
+
+# ========== СТАТИЧЕСКИЕ ФАЙЛЫ ==========
+
+@app.route('/')
+def index():
+    """Главная страница - отдаем index.html"""
+    return send_file('index.html')
+
+@app.route('/static/<path:path>')
+def serve_static(path):
+    """Отдаем статические файлы из папки static"""
+    return send_from_directory('static', path)
+
+@app.route('/<path:filename>')
+def serve_file(filename):
+    """Отдаем конкретные файлы если они существуют"""
+    # Список разрешенных файлов
+    allowed_files = ['index.html', 'style.css', 'script.js', 'favicon.ico']
+    
+    if filename in allowed_files and os.path.exists(filename):
+        return send_file(filename)
+    
+    # Если файл не найден, возвращаем index.html (для SPA)
+    return send_file('index.html')
+
+# ========== API МАРШРУТЫ ==========
 
 @app.route('/api/order', methods=['POST'])
 def create_order():
@@ -122,25 +151,10 @@ def create_payment():
         payment_method = data.get('payment_method', 'yookassa')
         
         # Генерация URL оплаты
-        if payment_method == 'yookassa' and YOOKASSA_SHOP_ID:
-            # Интеграция с ЮKassa
-            import uuid
-            payment_id = str(uuid.uuid4())
-            
-            # Здесь будет реальная интеграция с ЮKassa
-            payment_url = f"https://yookassa.ru/payments/{payment_id}"
-            
-            return jsonify({
-                'success': True,
-                'payment_url': payment_url,
-                'payment_id': payment_id
-            })
-        
-        elif payment_method == 'crypto':
+        if payment_method == 'crypto':
             # Крипто-оплата со скидкой 200₽
             crypto_amount = amount - 200  # Скидка 200₽
             
-            # Интеграция с NOWPayments или другим сервисом
             return jsonify({
                 'success': True,
                 'payment_url': f"/crypto-payment?amount={crypto_amount}&order_id={order_id}",
@@ -208,6 +222,8 @@ def get_products():
     ]
     return jsonify(products)
 
+# ========== СТРАНИЦЫ ОПЛАТЫ ==========
+
 @app.route('/payment/success')
 def payment_success():
     order_id = request.args.get('order_id')
@@ -219,6 +235,7 @@ def payment_success():
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Оплата успешна - MORELUFS</title>
+        <link rel="stylesheet" href="/style.css">
         <style>
             body {{
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -274,6 +291,9 @@ def payment_success():
                 font-weight: 600;
                 transition: opacity 0.3s;
                 font-size: 14px;
+                border: none;
+                cursor: pointer;
+                font-family: inherit;
             }}
             .btn:hover {{
                 opacity: 0.9;
@@ -287,8 +307,17 @@ def payment_success():
             <p>Ваш заказ был успешно оплачен и принят в обработку.</p>
             {f'<div class="order-id">Номер заказа: #{order_id}</div>' if order_id else ''}
             <p>Мы свяжемся с вами в ближайшее время для подтверждения деталей доставки.</p>
-            <button onclick="window.Telegram.WebApp.close()" class="btn">Закрыть</button>
+            <button onclick="closeWindow()" class="btn">Закрыть</button>
         </div>
+        <script>
+            function closeWindow() {{
+                if (window.Telegram && Telegram.WebApp) {{
+                    Telegram.WebApp.close();
+                }} else {{
+                    window.close();
+                }}
+            }}
+        </script>
     </body>
     </html>
     '''
@@ -305,6 +334,7 @@ def crypto_payment():
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Оплата криптовалютой - MORELUFS</title>
+        <link rel="stylesheet" href="/style.css">
         <style>
             body {{
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -383,6 +413,7 @@ def crypto_payment():
                 font-size: 16px;
                 cursor: pointer;
                 margin-top: 20px;
+                font-family: inherit;
             }}
         </style>
     </head>
@@ -442,7 +473,6 @@ def crypto_payment():
             }}
             
             function checkPayment() {{
-                // Здесь будет проверка оплаты
                 window.location.href = '/payment/success?order_id={order_id}';
             }}
             
@@ -452,133 +482,62 @@ def crypto_payment():
     </html>
     '''
 
+# ========== СЛУЖЕБНЫЕ МАРШРУТЫ ==========
+
 @app.route('/health')
 def health_check():
-    return jsonify({'status': 'healthy', 'service': 'Morelufs Telegram API'})
+    return jsonify({
+        'status': 'healthy', 
+        'service': 'Morelufs Telegram API',
+        'static_files': os.path.exists('static'),
+        'templates': os.path.exists('index.html')
+    })
 
-@app.route('/')
-def index():
-    """Отдаем главную страницу"""
-    return '''
-    <!DOCTYPE html>
-    <html lang="ru">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>MORELUFS Store API</title>
-        <style>
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                background: #000;
-                color: #fff;
-                margin: 0;
-                padding: 40px 20px;
-                text-align: center;
-                min-height: 100vh;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-            }
-            .container {
-                max-width: 600px;
-            }
-            h1 {
-                font-size: 32px;
-                margin-bottom: 10px;
-                font-weight: 600;
-            }
-            .logo {
-                font-size: 48px;
-                margin-bottom: 30px;
-            }
-            .status {
-                background: #22c55e;
-                color: white;
-                padding: 8px 16px;
-                border-radius: 20px;
-                display: inline-block;
-                margin-bottom: 30px;
-                font-weight: 500;
-            }
-            .endpoints {
-                text-align: left;
-                background: #111;
-                padding: 20px;
-                border-radius: 12px;
-                margin: 20px 0;
-            }
-            .endpoint {
-                margin-bottom: 15px;
-                padding-bottom: 15px;
-                border-bottom: 1px solid #333;
-            }
-            .endpoint:last-child {
-                border-bottom: none;
-                margin-bottom: 0;
-                padding-bottom: 0;
-            }
-            .method {
-                display: inline-block;
-                background: #3b82f6;
-                color: white;
-                padding: 4px 8px;
-                border-radius: 4px;
-                font-size: 12px;
-                font-weight: 600;
-                margin-right: 10px;
-            }
-            .url {
-                font-family: monospace;
-                color: #ccc;
-                font-size: 14px;
-            }
-            .description {
-                color: #999;
-                font-size: 14px;
-                margin-top: 5px;
-                margin-left: 50px;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="logo">🛍️</div>
-            <h1>MORELUFS Store API</h1>
-            <div class="status">✅ Сервер работает</div>
-            <p>API для Telegram Mini App интернет-магазина</p>
-            
-            <div class="endpoints">
-                <div class="endpoint">
-                    <span class="method">GET</span>
-                    <span class="url">/api/products</span>
-                    <div class="description">Получить список товаров</div>
-                </div>
-                <div class="endpoint">
-                    <span class="method">POST</span>
-                    <span class="url">/api/order</span>
-                    <div class="description">Создать новый заказ (отправляет в Telegram)</div>
-                </div>
-                <div class="endpoint">
-                    <span class="method">POST</span>
-                    <span class="url">/api/create-payment</span>
-                    <div class="description">Создать платежную ссылку</div>
-                </div>
-                <div class="endpoint">
-                    <span class="method">GET</span>
-                    <span class="url">/health</span>
-                    <div class="description">Проверка работоспособности сервера</div>
-                </div>
-            </div>
-            
-            <p style="color: #666; margin-top: 30px; font-size: 14px;">
-                Для работы магазина откройте index.html в Telegram Mini App
-            </p>
-        </div>
-    </body>
-    </html>
-    '''
+@app.route('/api/debug')
+def debug_info():
+    """Информация для отладки"""
+    return jsonify({
+        'telegram_token_set': bool(TELEGRAM_BOT_TOKEN and TELEGRAM_BOT_TOKEN != 'YOUR_BOT_TOKEN'),
+        'chat_id_set': bool(TELEGRAM_CHAT_ID and TELEGRAM_CHAT_ID != 'YOUR_CHAT_ID'),
+        'current_time': datetime.now().isoformat(),
+        'working_directory': os.getcwd(),
+        'files_in_directory': os.listdir('.')
+    })
+
+# ========== ОБРАБОТКА ОШИБОК ==========
+
+@app.errorhandler(404)
+def not_found(e):
+    """Обработка 404 ошибки - возвращаем index.html для SPA"""
+    return send_file('index.html')
+
+@app.errorhandler(500)
+def internal_error(e):
+    """Обработка 500 ошибки"""
+    return jsonify({'error': 'Internal server error', 'message': str(e)}), 500
+
+# ========== ЗАПУСК СЕРВЕРА ==========
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
+    
+    # Создаем папку static если её нет
+    if not os.path.exists('static'):
+        os.makedirs('static')
+        print("Создана папка static/")
+    
+    print("=" * 50)
+    print("MORELUFS Telegram Mini App Server")
+    print("=" * 50)
+    print(f"📁 Текущая директория: {os.getcwd()}")
+    print(f"📁 Существует index.html: {os.path.exists('index.html')}")
+    print(f"📁 Существует static/: {os.path.exists('static')}")
+    print(f"🔑 Telegram Token установлен: {'✅' if TELEGRAM_BOT_TOKEN != 'YOUR_BOT_TOKEN' else '❌'}")
+    print(f"👤 Chat ID установлен: {'✅' if TELEGRAM_CHAT_ID != 'YOUR_CHAT_ID' else '❌'}")
+    print("=" * 50)
+    print(f"🌐 Сервер запущен: http://localhost:{port}")
+    print(f"🔧 API доступно: http://localhost:{port}/api/products")
+    print(f"❤️  Проверка здоровья: http://localhost:{port}/health")
+    print("=" * 50)
+    
     app.run(host='0.0.0.0', port=port, debug=True)
