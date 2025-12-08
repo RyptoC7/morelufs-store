@@ -1,0 +1,23 @@
+{
+  "personal": [
+    {
+      "id": 1,
+      "text": "xvxcvbxcbxcbxcb",
+      "completed": true
+    }
+  ],
+  "work": [
+    {
+      "id": 1,
+      "text": "xcbxcbcxbxcb",
+      "completed": false
+    }
+  ],
+  "other": [
+    {
+      "id": 1,
+      "text": "cxbxcbcxbcxbcxb",
+      "completed": true
+    }
+  ]
+}

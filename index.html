@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta charset="UTF-8">
+    <title>MORELUFS</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <!-- Telegram Web App Container -->
+    <div class="tg-app">
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Products Section -->
+            <section class="products-section" id="productsSection">
+                <div class="products-split">
+                    <div class="product-half dark-half" data-product="dark">
+                        <div class="product-image-full">
+                            <img src="https://via.placeholder.com/400x500/000000/FFFFFF?text=Dark+Hoodie+Front" 
+                                 alt="Dark Zip Hoodie" class="product-front">
+                            <img src="https://via.placeholder.com/400x500/333333/FFFFFF?text=Dark+Hoodie+Back" 
+                                 alt="Dark Zip Hoodie Back" class="product-back">
+                        </div>
+                        <div class="product-info-full">
+                            <h3 class="product-title">Dark Zip Hoodie</h3>
+                            <p class="product-price">6 000 ₽</p>
+                        </div>
+                    </div>
+                    <div class="product-half gray-half" data-product="gray">
+                        <div class="product-image-full">
+                            <img src="https://via.placeholder.com/400x500/666666/FFFFFF?text=Gray+Hoodie+Front" 
+                                 alt="Gray Zip Hoodie" class="product-front">
+                            <img src="https://via.placeholder.com/400x500/999999/FFFFFF?text=Gray+Hoodie+Back" 
+                                 alt="Gray Zip Hoodie Back" class="product-back">
+                        </div>
+                        <div class="product-info-full">
+                            <h3 class="product-title">Gray Zip Hoodie</h3>
+                            <p class="product-price">6 000 ₽</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Product Detail Page -->
+            <section class="product-detail-page" id="productDetailPage">
+                <div class="detail-header">
+                    <button class="back-btn" id="backBtn">← Назад</button>
+                </div>
+                <div class="product-detail-content">
+                    <div class="product-gallery-simple">
+                        <div class="product-image-simple">
+                            <img id="detailProductImageFront" src="" alt="Front View">
+                        </div>
+                        <div class="product-image-simple">
+                            <img id="detailProductImageBack" src="" alt="Back View">
+                        </div>
+                    </div>
+                    <div class="product-detail-info">
+                        <h1 id="detailProductTitle"></h1>
+                        <p class="product-detail-price" id="detailProductPrice">6 000 ₽</p>
+                        
+                        <div class="size-selection">
+                            <h3>Размер</h3>
+                            <div class="size-options">
+                                <button class="size-option" data-size="S">S</button>
+                                <button class="size-option" data-size="M">M</button>
+                                <button class="size-option" data-size="L">L</button>
+                            </div>
+                            <p class="size-guide">Модель 179 см / 5'10" носит размер М</p>
+                        </div>
+
+                        <button class="add-to-cart-detail-btn" id="addToCartDetail">Добавить в корзину</button>
+
+                        <div class="product-description">
+                            <div class="description-section">
+                                <h3>Замеры изделия (зип худи):</h3>
+                                <p><strong>Размер (S):</strong> длина изделия: 70 см, полуобхват груди: 58 см., ширина плеч: 54,5 см., длина рукава: 65 см., ширина ворота: 23,5 см.</p>
+                                <p><strong>Размер (M):</strong> длина изделия: 72 см, полуобхват груди: 60 см., ширина плеч: 56 см., длина рукава: 66 см., ширина ворота: 24 см.</p>
+                                <p><strong>Размер (L):</strong> длина изделия: 74 см, полуобхват груди: 62 см., ширина плеч: 57,5 см., длина рукава: 67 см., ширина ворота: 24,5 см.</p>
+                            </div>
+
+                            <div class="description-section">
+                                <h3>Рекомендации по уходу:</h3>
+                                <p><strong>Стирка:</strong> Стирать наизнанку, чтобы избежать трения молнии с другими изделиями. Предпочтительна ручная стирка; при машинной — использовать только деликатный режим при температуре 30–40 °C. Применять мягкие моющие средства, без отбеливателей, энзимов и агрессивных кондиционеров. Не замачивать изделие надолго. Избегать интенсивного отжима и высоких оборотов.</p>
+
+                                <p><strong>Сушка:</strong> Не выкручивать и не растягивать ткань. Не использовать сушильную машину: высокая температура может привести к деформации ткани.</p>
+
+                                <p><strong>Глажка:</strong> Гладить только с изнаночной стороны при низкой температуре. Не прикасаться утюгом к молнии.</p>
+
+                                <p><strong>Хранение и уход:</strong> Хранить в сложенном виде или на вешалке, избегая образования заломов. Не тереть и не царапать поверхность ткани.</p>
+
+                                <p><strong>Состав:</strong> 100% хлопок, 470 г/м³</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Checkout Page -->
+            <section class="checkout-page" id="checkoutPage">
+                <div class="checkout-header">
+                    <button class="back-to-cart-btn" id="backToCartBtn">← Назад</button>
+                    <h1 class="checkout-title">ОФОРМЛЕНИЕ ЗАКАЗА</h1>
+                </div>
+                
+                <div class="checkout-container">
+                    <div class="checkout-content">
+                        <!-- Left Column - Form -->
+                        <div class="checkout-form">
+                            <!-- Delivery Method -->
+                            <div class="checkout-section">
+                                <h3>СПОСОБ ДОСТАВКИ</h3>
+                                <div class="delivery-methods">
+                                    <label class="delivery-method">
+                                        <input type="radio" name="delivery" value="russian-post" checked>
+                                        <span class="delivery-checkmark"></span>
+                                        <span class="delivery-info">
+                                            <strong>Почта России</strong>
+                                            <span>от 300 ₽ • 7-14 дней</span>
+                                        </span>
+                                    </label>
+                                    <label class="delivery-method">
+                                        <input type="radio" name="delivery" value="yandex-delivery">
+                                        <span class="delivery-checkmark"></span>
+                                        <span class="delivery-info">
+                                            <strong>Яндекс Доставка</strong>
+                                            <span>от 400 ₽ • 2-5 дней</span>
+                                        </span>
+                                    </label>
+                                    <label class="delivery-method">
+                                        <input type="radio" name="delivery" value="cdek">
+                                        <span class="delivery-checkmark"></span>
+                                        <span class="delivery-info">
+                                            <strong>СДЭК</strong>
+                                            <span>от 500 ₽ • 3-7 дней</span>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Payment Method -->
+                            <div class="checkout-section">
+                                <h3>СПОСОБ ОПЛАТЫ</h3>
+                                <div class="delivery-methods">
+                                    <label class="delivery-method">
+                                        <input type="radio" name="payment" value="yookassa" checked>
+                                        <span class="delivery-checkmark"></span>
+                                        <span class="delivery-info">
+                                            <strong>ЮKassa</strong>
+                                            <span>Карта, СБП, Яндекс.Деньги</span>
+                                        </span>
+                                    </label>
+                                    <label class="delivery-method">
+                                        <input type="radio" name="payment" value="crypto">
+                                        <span class="delivery-checkmark"></span>
+                                        <span class="delivery-info">
+                                            <strong>Криптовалюта</strong>
+                                            <span>USDT, BTC, ETH • <strong style="color: #22c55e;">-200₽ скидка</strong></span>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Address with Autocomplete -->
+                            <div class="checkout-section">
+                                <h3>АДРЕС ДОСТАВКИ</h3>
+                                <div class="form-group">
+                                    <label>Страна</label>
+                                    <input type="text" id="country" value="Россия" readonly>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Город *</label>
+                                        <input type="text" id="city" placeholder="Введите город" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Индекс *</label>
+                                        <input type="text" id="postalCode" placeholder="Почтовый индекс" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Адрес отделения доставки *</label>
+                                    <input type="text" id="address" placeholder="Введите адрес отделения" required>
+                                    <div class="address-suggestions" id="addressSuggestions"></div>
+                                </div>
+                            </div>
+
+                            <!-- Recipient Info -->
+                            <div class="checkout-section">
+                                <h3>ПОЛУЧАТЕЛЬ</h3>
+                                <div class="form-group">
+                                    <label>ФИО полностью *</label>
+                                    <input type="text" id="fullName" placeholder="Иванов Иван Иванович" required>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Телефон *</label>
+                                        <input type="tel" id="phone" placeholder="+7 (900) 000-00-00" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Email *</label>
+                                        <input type="email" id="email" placeholder="your@email.com" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Comments -->
+                            <div class="checkout-section">
+                                <h3>КОММЕНТАРИЙ К ЗАКАЗУ</h3>
+                                <div class="form-group">
+                                    <textarea id="comments" placeholder="Введите ваш комментарий" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column - Order Summary -->
+                        <div class="order-summary">
+                            <div class="summary-card">
+                                <h3>ВАШ ЗАКАЗ</h3>
+                                <div class="order-items" id="checkoutItems">
+                                    <!-- Items will be populated by JavaScript -->
+                                </div>
+                                
+                                <div class="summary-totals">
+                                    <div class="summary-row">
+                                        <span>Товары</span>
+                                        <span id="subtotalPrice">0 ₽</span>
+                                    </div>
+                                    <div class="summary-row">
+                                        <span>Доставка</span>
+                                        <span id="deliveryPrice">0 ₽</span>
+                                    </div>
+                                    <div class="summary-row" id="discountRow" style="display: none;">
+                                        <span>Скидка за крипту</span>
+                                        <span style="color: #22c55e;">-200 ₽</span>
+                                    </div>
+                                    <div class="summary-row total">
+                                        <span>ИТОГО</span>
+                                        <span id="totalCheckoutPrice">0 ₽</span>
+                                    </div>
+                                </div>
+
+                                <button class="pay-now-btn" id="payNowBtn">
+                                    ОПЛАТИТЬ <span id="finalAmount">0 ₽</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Cart Sidebar -->
+        <div class="cart-sidebar" id="cartSidebar">
+            <div class="cart-header">
+                <h2 class="cart-title">КОРЗИНА</h2>
+                <button class="cart-close" id="cartClose">×</button>
+            </div>
+            <div class="cart-items" id="cartItems">
+                <!-- Cart items will be added here -->
+            </div>
+            <div class="cart-total">
+                <div class="total-row">
+                    <span>Итого:</span>
+                    <span id="totalPrice">0 ₽</span>
+                </div>
+                <button class="checkout-btn" id="checkoutBtn">ОФОРМИТЬ ЗАКАЗ</button>
+            </div>
+        </div>
+
+        <!-- Cart Button (Floating) -->
+        <div class="cart-button-container">
+            <button class="cart-button" id="cartButton">
+                <i class="fas fa-shopping-bag"></i>
+                <span class="cart-button-count" id="cartButtonCount">0</span>
+            </button>
+        </div>
+
+        <!-- About Modal -->
+        <div class="about-modal" id="aboutModal">
+            <div class="about-modal-content">
+                <div class="about-modal-header">
+                    <h2>О MORELUFS</h2>
+                    <button class="about-modal-close" id="aboutModalClose">×</button>
+                </div>
+                <div class="about-modal-body">
+                    <div class="about-image">
+                        <img src="https://via.placeholder.com/400x300/000000/FFFFFF?text=MORELUFS" alt="About Morelufs">
+                    </div>
+                    <div class="about-text">
+                        <h3>MORELUFS</h3>
+                        <p>LUFS - условная единица измерения громкости аудиосигнала.</p>
+                        <p>Morelufs - это личность, отражающая историю двух душ, одержимых, поглощенных, но не усопших в своей мечте. Пропитанные самобытностью своего маленького северного города, они рискнули и пересекли видимый горизонт, для того, чтобы их внутренний звук обрёл эхо.</p>
+                        <p>Данная история нашла свое начало в двух, безгранично схожих между собой силуэтах, и обязательно найдет свое продолжение в каждом, кто хочет звучать.</p>
+                    </div>
+                    <div class="about-social">
+                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-telegram"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-vk"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Button (Floating) -->
+        <div class="about-button-container">
+            <button class="about-button" id="aboutButton">
+                <i class="fas fa-info"></i>
+            </button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
