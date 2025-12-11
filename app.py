@@ -4,14 +4,11 @@ import requests
 import logging
 from datetime import datetime
 from dotenv import load_dotenv
-# Для Railway - порт из переменных окружения
-port = int(os.environ.get("PORT", 5000))
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=port, debug=False)
 # Загружаем переменные окружения
 load_dotenv()
 
+# Создаем приложение Flask
 app = Flask(__name__, static_folder='static')
 
 # Конфигурация
@@ -95,16 +92,23 @@ def serve_static(path):
     """Отдаем статические файлы из папки static"""
     return send_from_directory('static', path)
 
-@app.route('/<path:filename>')
-def serve_file(filename):
-    """Отдаем конкретные файлы если они существуют"""
-    # Список разрешенных файлов
-    allowed_files = ['index.html', 'style.css', 'script.js', 'favicon.ico']
+# ========== ВАЖНО: SPA маршрутизация ==========
+@app.route('/<path:path>')
+def catch_all(path):
+    """Обрабатываем ВСЕ маршруты для SPA (Single Page Application)"""
+    # Список реальных файлов
+    real_files = ['index.html', 'style.css', 'script.js', 'favicon.ico']
     
-    if filename in allowed_files and os.path.exists(filename):
-        return send_file(filename)
+    # Если запрашивают реальный файл
+    if path in real_files and os.path.exists(path):
+        return send_file(path)
     
-    # Если файл не найден, возвращаем index.html (для SPA)
+    # Если запрашивают файл из static
+    if path.startswith('static/') and os.path.exists(path):
+        return send_from_directory('.', path)
+    
+    # Для ВСЕХ остальных маршрутов возвращаем index.html
+    # (позволяет работать Vue/React/Angular роутингу)
     return send_file('index.html')
 
 # ========== API МАРШРУТЫ ==========
@@ -230,96 +234,95 @@ def payment_success():
     
     return f'''
     <!DOCTYPE html>
-    <html lang="ru">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Оплата успешна - MORELUFS</title>
-        <link rel="stylesheet" href="/style.css">
-        <style>
-            body {{
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                background: #f8f8f8;
-                margin: 0;
-                padding: 0;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оплата успешна - MORELUFS</title>
+    <style>
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f8f8;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }}
+        .success-container {{
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }}
+        .success-icon {{
+            font-size: 48px;
+            color: #22c55e;
+            margin-bottom: 20px;
+        }}
+        h1 {{
+            color: #000;
+            margin-bottom: 15px;
+            font-weight: 600;
+            font-size: 20px;
+        }}
+        p {{
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }}
+        .order-id {{
+            background: #f1f5f9;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+            font-size: 14px;
+        }}
+        .btn {{
+            display: inline-block;
+            background: #000;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: opacity 0.3s;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+        }}
+        .btn:hover {{
+            opacity: 0.9;
+        }}
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <div class="success-icon">✓</div>
+        <h1>Оплата прошла успешно!</h1>
+        <p>Ваш заказ был успешно оплачен и принят в обработку.</p>
+        {f'<div class="order-id">Номер заказа: #{order_id}</div>' if order_id else ''}
+        <p>Мы свяжемся с вами в ближайшее время для подтверждения деталей доставки.</p>
+        <button onclick="closeWindow()" class="btn">Закрыть</button>
+    </div>
+    <script>
+        function closeWindow() {{
+            if (window.Telegram && Telegram.WebApp) {{
+                Telegram.WebApp.close();
+            }} else {{
+                window.close();
             }}
-            .success-container {{
-                background: white;
-                padding: 30px;
-                border-radius: 12px;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-                text-align: center;
-                max-width: 400px;
-                width: 90%;
-            }}
-            .success-icon {{
-                font-size: 48px;
-                color: #22c55e;
-                margin-bottom: 20px;
-            }}
-            h1 {{
-                color: #000;
-                margin-bottom: 15px;
-                font-weight: 600;
-                font-size: 20px;
-            }}
-            p {{
-                color: #666;
-                line-height: 1.6;
-                margin-bottom: 20px;
-                font-size: 14px;
-            }}
-            .order-id {{
-                background: #f1f5f9;
-                padding: 10px 15px;
-                border-radius: 6px;
-                font-weight: 600;
-                margin: 20px 0;
-                font-size: 14px;
-            }}
-            .btn {{
-                display: inline-block;
-                background: #000;
-                color: white;
-                padding: 12px 24px;
-                text-decoration: none;
-                border-radius: 6px;
-                font-weight: 600;
-                transition: opacity 0.3s;
-                font-size: 14px;
-                border: none;
-                cursor: pointer;
-                font-family: inherit;
-            }}
-            .btn:hover {{
-                opacity: 0.9;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="success-container">
-            <div class="success-icon">✓</div>
-            <h1>Оплата прошла успешно!</h1>
-            <p>Ваш заказ был успешно оплачен и принят в обработку.</p>
-            {f'<div class="order-id">Номер заказа: #{order_id}</div>' if order_id else ''}
-            <p>Мы свяжемся с вами в ближайшее время для подтверждения деталей доставки.</p>
-            <button onclick="closeWindow()" class="btn">Закрыть</button>
-        </div>
-        <script>
-            function closeWindow() {{
-                if (window.Telegram && Telegram.WebApp) {{
-                    Telegram.WebApp.close();
-                }} else {{
-                    window.close();
-                }}
-            }}
-        </script>
-    </body>
-    </html>
+        }}
+    </script>
+</body>
+</html>
     '''
 
 @app.route('/crypto-payment')
@@ -329,157 +332,156 @@ def crypto_payment():
     
     return f'''
     <!DOCTYPE html>
-    <html lang="ru">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Оплата криптовалютой - MORELUFS</title>
-        <link rel="stylesheet" href="/style.css">
-        <style>
-            body {{
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                background: #f8f8f8;
-                margin: 0;
-                padding: 20px;
-            }}
-            .crypto-container {{
-                background: white;
-                padding: 25px;
-                border-radius: 12px;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-                max-width: 400px;
-                margin: 0 auto;
-            }}
-            h1 {{
-                color: #000;
-                margin-bottom: 20px;
-                font-weight: 600;
-                font-size: 20px;
-                text-align: center;
-            }}
-            .info-box {{
-                background: #f1f5f9;
-                padding: 15px;
-                border-radius: 8px;
-                margin-bottom: 20px;
-            }}
-            .info-row {{
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 10px;
-                font-size: 14px;
-            }}
-            .discount {{
-                color: #22c55e;
-                font-weight: 600;
-            }}
-            .wallet-address {{
-                background: #f8f8f8;
-                padding: 15px;
-                border-radius: 8px;
-                font-family: monospace;
-                font-size: 14px;
-                word-break: break-all;
-                margin: 20px 0;
-                text-align: center;
-            }}
-            .qr-code {{
-                width: 200px;
-                height: 200px;
-                background: #f0f0f0;
-                margin: 20px auto;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 8px;
-                font-size: 12px;
-                color: #666;
-            }}
-            .timer {{
-                text-align: center;
-                font-size: 14px;
-                color: #666;
-                margin: 20px 0;
-            }}
-            .btn {{
-                display: block;
-                width: 100%;
-                background: #000;
-                color: white;
-                padding: 15px;
-                border: none;
-                border-radius: 8px;
-                font-weight: 600;
-                font-size: 16px;
-                cursor: pointer;
-                margin-top: 20px;
-                font-family: inherit;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="crypto-container">
-            <h1>Оплата криптовалютой</h1>
-            
-            <div class="info-box">
-                <div class="info-row">
-                    <span>Сумма заказа:</span>
-                    <span>{int(float(amount)) + 200} ₽</span>
-                </div>
-                <div class="info-row discount">
-                    <span>Скидка за крипту:</span>
-                    <span>-200 ₽</span>
-                </div>
-                <div class="info-row" style="font-weight: 600; font-size: 16px;">
-                    <span>К оплате:</span>
-                    <span>{int(float(amount))} ₽</span>
-                </div>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оплата криптовалютой - MORELUFS</title>
+    <style>
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f8f8;
+            margin: 0;
+            padding: 20px;
+        }}
+        .crypto-container {{
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            max-width: 400px;
+            margin: 0 auto;
+        }}
+        h1 {{
+            color: #000;
+            margin-bottom: 20px;
+            font-weight: 600;
+            font-size: 20px;
+            text-align: center;
+        }}
+        .info-box {{
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }}
+        .info-row {{
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }}
+        .discount {{
+            color: #22c55e;
+            font-weight: 600;
+        }}
+        .wallet-address {{
+            background: #f8f8f8;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            word-break: break-all;
+            margin: 20px 0;
+            text-align: center;
+        }}
+        .qr-code {{
+            width: 200px;
+            height: 200px;
+            background: #f0f0f0;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #666;
+        }}
+        .timer {{
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin: 20px 0;
+        }}
+        .btn {{
+            display: block;
+            width: 100%;
+            background: #000;
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-family: inherit;
+        }}
+    </style>
+</head>
+<body>
+    <div class="crypto-container">
+        <h1>Оплата криптовалютой</h1>
+        
+        <div class="info-box">
+            <div class="info-row">
+                <span>Сумма заказа:</span>
+                <span>{int(float(amount)) + 200} ₽</span>
             </div>
-            
-            <div style="text-align: center; margin: 20px 0;">
-                <div style="font-size: 14px; color: #666; margin-bottom: 10px;">Отправьте на адрес:</div>
-                <div class="wallet-address">0x742d35Cc6634C0532925a3b8Bb</div>
+            <div class="info-row discount">
+                <span>Скидка за крипту:</span>
+                <span>-200 ₽</span>
             </div>
-            
-            <div class="qr-code">
-                [QR-код для оплаты]
+            <div class="info-row" style="font-weight: 600; font-size: 16px;">
+                <span>К оплате:</span>
+                <span>{int(float(amount))} ₽</span>
             </div>
-            
-            <div class="timer">
-                ⏳ Счет действителен: <span id="timer">15:00</span>
-            </div>
-            
-            <div style="font-size: 12px; color: #666; text-align: center; margin-top: 20px;">
-                После оплаты нажмите кнопку ниже для подтверждения
-            </div>
-            
-            <button onclick="checkPayment()" class="btn">Я ОПЛАТИЛ</button>
         </div>
         
-        <script>
-            let timeLeft = 15 * 60;
+        <div style="text-align: center; margin: 20px 0;">
+            <div style="font-size: 14px; color: #666; margin-bottom: 10px;">Отправьте на адрес:</div>
+            <div class="wallet-address">0x742d35Cc6634C0532925a3b8Bb</div>
+        </div>
+        
+        <div class="qr-code">
+            [QR-код для оплаты]
+        </div>
+        
+        <div class="timer">
+            ⏳ Счет действителен: <span id="timer">15:00</span>
+        </div>
+        
+        <div style="font-size: 12px; color: #666; text-align: center; margin-top: 20px;">
+            После оплаты нажмите кнопку ниже для подтверждения
+        </div>
+        
+        <button onclick="checkPayment()" class="btn">Я ОПЛАТИЛ</button>
+    </div>
+    
+    <script>
+        let timeLeft = 15 * 60;
+        
+        function updateTimer() {{
+            let minutes = Math.floor(timeLeft / 60);
+            let seconds = timeLeft % 60;
+            document.getElementById('timer').textContent = 
+                minutes.toString().padStart(2, '0') + ':' + 
+                seconds.toString().padStart(2, '0');
             
-            function updateTimer() {{
-                let minutes = Math.floor(timeLeft / 60);
-                let seconds = timeLeft % 60;
-                document.getElementById('timer').textContent = 
-                    minutes.toString().padStart(2, '0') + ':' + 
-                    seconds.toString().padStart(2, '0');
-                
-                if (timeLeft > 0) {{
-                    timeLeft--;
-                    setTimeout(updateTimer, 1000);
-                }}
+            if (timeLeft > 0) {{
+                timeLeft--;
+                setTimeout(updateTimer, 1000);
             }}
-            
-            function checkPayment() {{
-                window.location.href = '/payment/success?order_id={order_id}';
-            }}
-            
-            updateTimer();
-        </script>
-    </body>
-    </html>
+        }}
+        
+        function checkPayment() {{
+            window.location.href = '/payment/success?order_id={order_id}';
+        }}
+        
+        updateTimer();
+    </script>
+</body>
+</html>
     '''
 
 # ========== СЛУЖЕБНЫЕ МАРШРУТЫ ==========
@@ -540,4 +542,5 @@ if __name__ == '__main__':
     print(f"❤️  Проверка здоровья: http://localhost:{port}/health")
     print("=" * 50)
     
-    app.run(host='0.0.0.0', port=port, debug=True)
+    # Важно: debug=False для продакшена!
+    app.run(host='0.0.0.0', port=port, debug=False)
