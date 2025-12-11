@@ -209,8 +209,8 @@ def get_products():
             'price': 6000,
             'description': '100% Cotton, 470 g/m³',
             'images': {
-                'front': 'https://via.placeholder.com/400x500/000000/FFFFFF?text=Dark+Hoodie+Front',
-                'back': 'https://via.placeholder.com/400x500/333333/FFFFFF?text=Dark+Hoodie+Back'
+                'front': 'C:\Visual Studio\Miniapp_deepseek_github\static\images\dark_hoodie_front.jpg',
+                'back': 'C:\Visual Studio\Miniapp_deepseek_github\static\images\dark_hoodie_back.png'
             }
         },
         {
@@ -219,8 +219,8 @@ def get_products():
             'price': 6000,
             'description': '100% Cotton, 470 g/m³',
             'images': {
-                'front': 'https://via.placeholder.com/400x500/666666/FFFFFF?text=Gray+Hoodie+Front',
-                'back': 'https://via.placeholder.com/400x500/999999/FFFFFF?text=Gray+Hoodie+Back'
+                'front': 'C:\Visual Studio\Miniapp_deepseek_github\static\images\gray_hoodie_front.jpg',
+                'back': 'C:\Visual Studio\Miniapp_deepseek_github\static\images\gray_hoodie_back.jpg'
             }
         }
     ]

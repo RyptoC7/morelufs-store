@@ -96,14 +96,14 @@ const products = {
     dark: {
         title: "Dark Zip Hoodie",
         price: 6000,
-        frontImage: "https://via.placeholder.com/400x500/000000/FFFFFF?text=Dark+Hoodie+Front",
-        backImage: "https://via.placeholder.com/400x500/333333/FFFFFF?text=Dark+Hoodie+Back"
+        frontImage: "C:\Visual Studio\Miniapp_deepseek_github\static\images\dark_hoodie_front.jpg",
+        backImage: "C:\Visual Studio\Miniapp_deepseek_github\static\images\dark_hoodie_back.png"
     },
     gray: {
         title: "Gray Zip Hoodie", 
         price: 6000,
-        frontImage: "https://via.placeholder.com/400x500/666666/FFFFFF?text=Gray+Hoodie+Front",
-        backImage: "https://via.placeholder.com/400x500/999999/FFFFFF?text=Gray+Hoodie+Back"
+        frontImage: "C:\Visual Studio\Miniapp_deepseek_github\static\images\gray_hoodie_front.jpg",
+        backImage: "C:\Visual Studio\Miniapp_deepseek_github\static\images\gray_hoodie_back.jpg"
     }
 };
 
