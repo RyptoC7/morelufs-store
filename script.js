@@ -91,19 +91,19 @@ const elements = {
     discountRow: document.getElementById('discountRow')
 };
 
-// Product data
+// Product data - ИСПРАВЛЕННЫЕ ПУТИ
 const products = {
     dark: {
         title: "Dark Zip Hoodie",
         price: 6000,
-        frontImage: "C:\Visual Studio\Miniapp_deepseek_github\static\images\dark_hoodie_front.jpg",
-        backImage: "C:\Visual Studio\Miniapp_deepseek_github\static\images\dark_hoodie_back.png"
+        frontImage: "/static/images/dark_hoodie_front.jpg",  // ← dark_hoodie_front.jpg
+        backImage: "/static/images/dark_hoodie_back.png"     // ← dark_hoodie_back.png
     },
     gray: {
         title: "Gray Zip Hoodie", 
         price: 6000,
-        frontImage: "C:\Visual Studio\Miniapp_deepseek_github\static\images\gray_hoodie_front.jpg",
-        backImage: "C:\Visual Studio\Miniapp_deepseek_github\static\images\gray_hoodie_back.jpg"
+        frontImage: "/static/images/gray_hoodie_front.jpg",  // ← gray_hoodie_front.jpg
+        backImage: "/static/images/gray_hoodie_back.jpg"     // ← gray_hoodie_back.jpg
     }
 };
 

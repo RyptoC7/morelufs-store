@@ -209,8 +209,8 @@ def get_products():
             'price': 6000,
             'description': '100% Cotton, 470 g/m³',
             'images': {
-                'front': 'C:\Visual Studio\Miniapp_deepseek_github\static\images\dark_hoodie_front.jpg',
-                'back': 'C:\Visual Studio\Miniapp_deepseek_github\static\images\dark_hoodie_back.png'
+                'front': '/static/images/dark_hoodie_front.jpg',
+                'back': '/static/images/dark_hoodie_back.png'
             }
         },
         {
@@ -219,8 +219,8 @@ def get_products():
             'price': 6000,
             'description': '100% Cotton, 470 g/m³',
             'images': {
-                'front': 'C:\Visual Studio\Miniapp_deepseek_github\static\images\gray_hoodie_front.jpg',
-                'back': 'C:\Visual Studio\Miniapp_deepseek_github\static\images\gray_hoodie_back.jpg'
+                'front': '/static/images/gray_hoodie_front.jpg',
+                'back': '/static/images/gray_hoodie_back.jpg'
             }
         }
     ]
@@ -541,6 +541,8 @@ if __name__ == '__main__':
     print(f"🔧 API доступно: http://localhost:{port}/api/products")
     print(f"❤️  Проверка здоровья: http://localhost:{port}/health")
     print("=" * 50)
+    
+
     
     # Важно: debug=False для продакшена!
     app.run(host='0.0.0.0', port=port, debug=False)
