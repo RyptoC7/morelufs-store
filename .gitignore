@@ -1,18 +1,40 @@
 # Python
 __pycache__/
-*.pyc
-venv/
+*.py[cod]
+*$py.class
+*.so
+.Python
 env/
-.venv/
-
-# Environment
+venv/
+ENV/
 .env
-.env.local
+.venv
+
+# Virtual Environment
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
 # OS
 .DS_Store
 Thumbs.db
 
-# IDE
-.vscode/
-.idea/
+# Logs
+*.log
+
+# Database
+*.db
+*.sqlite3
+
+# Static files
+static/images/*.jpg
+static/images/*.png
+!static/images/about.jpg
+!static/images/dark_hoodie_front.jpg
+!static/images/dark_hoodie_back.png
+!static/images/gray_hoodie_front.jpg
+!static/images

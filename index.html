@@ -20,10 +20,10 @@
                     <div class="product-half dark-half" data-product="dark">
                         <div class="product-image-full">
                             <!-- Dark Hoodie -->
-<img src="/static/images/dark_hoodie_front.jpg" 
-     alt="Dark Zip Hoodie" class="product-front">
-<img src="/static/images/dark_hoodie_back.png" 
-     alt="Dark Zip Hoodie Back" class="product-back">
+                            <img src="/static/images/dark_hoodie_front.jpg" 
+                                 alt="Dark Zip Hoodie" class="product-front">
+                            <img src="/static/images/dark_hoodie_back.png" 
+                                 alt="Dark Zip Hoodie Back" class="product-back">
                         </div>
                         <div class="product-info-full">
                             <h3 class="product-title">Dark Zip Hoodie</h3>
@@ -33,9 +33,9 @@
                     <div class="product-half gray-half" data-product="gray">
                         <div class="product-image-full">
                            <img src="/static/images/gray_hoodie_front.jpg" 
-     alt="Gray Zip Hoodie" class="product-front">
-<img src="/static/images/gray_hoodie_back.jpg" 
-     alt="Gray Zip Hoodie Back" class="product-back">
+                                alt="Gray Zip Hoodie" class="product-front">
+                           <img src="/static/images/gray_hoodie_back.jpg" 
+                                alt="Gray Zip Hoodie Back" class="product-back">
                         </div>
                         <div class="product-info-full">
                             <h3 class="product-title">Gray Zip Hoodie</h3>
@@ -48,15 +48,21 @@
             <!-- Product Detail Page -->
             <section class="product-detail-page" id="productDetailPage">
                 <div class="detail-header">
-                    <button class="back-btn" id="backBtn">← Назад</button>
+                    <button class="back-btn" id="backBtn">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div class="detail-title">MORELUFS</div>
+                    <div class="header-spacer"></div>
                 </div>
                 <div class="product-detail-content">
                     <div class="product-gallery-simple">
-                        <div class="product-image-simple">
-                            <img id="detailProductImageFront" src="" alt="Front View">
-                        </div>
-                        <div class="product-image-simple">
+                        <div class="product-image-main">
+                            <img id="detailProductImageFront" src="" alt="Front View" class="active">
                             <img id="detailProductImageBack" src="" alt="Back View">
+                        </div>
+                        <div class="gallery-controls">
+                            <button class="gallery-btn active" data-view="front"></button>
+                            <button class="gallery-btn" data-view="back"></button>
                         </div>
                     </div>
                     <div class="product-detail-info">
@@ -103,8 +109,11 @@
             <!-- Checkout Page -->
             <section class="checkout-page" id="checkoutPage">
                 <div class="checkout-header">
-                    <button class="back-to-cart-btn" id="backToCartBtn">← Назад</button>
+                    <button class="back-to-cart-btn" id="backToCartBtn">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
                     <h1 class="checkout-title">ОФОРМЛЕНИЕ ЗАКАЗА</h1>
+                    <div class="header-spacer"></div>
                 </div>
                 
                 <div class="checkout-container">
@@ -257,7 +266,7 @@
         <!-- Cart Sidebar -->
         <div class="cart-sidebar" id="cartSidebar">
             <div class="cart-header">
-                <h2 class="cart-title">КОРЗИНА</h2>
+                <h2 class="cart-title">КОРЗИНА <span id="cartCount">0</span></h2>
                 <button class="cart-close" id="cartClose">×</button>
             </div>
             <div class="cart-items" id="cartItems">
@@ -289,8 +298,8 @@
                 </div>
                 <div class="about-modal-body">
                     <div class="about-image">
-    <img src="/static/images/about.jpg" alt="About Morelufs">
-</div>
+                        <img src="/static/images/about.jpg" alt="About Morelufs">
+                    </div>
                     <div class="about-text">
                         <h3>MORELUFS</h3>
                         <p>LUFS - условная единица измерения громкости аудиосигнала.</p>
