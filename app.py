@@ -534,7 +534,23 @@ if __name__ == '__main__':
     print(f"📁 Текущая директория: {os.getcwd()}")
     print(f"📁 Существует index.html: {os.path.exists('index.html')}")
     print(f"📁 Существует static/: {os.path.exists('static')}")
-    print(f"🔑 Telegram Token установлен: {'✅' if TELEGRAM_BOT_TOKEN != 'YOUR_BOT_TOKEN' else '❌'}")
+    
+    # Проверка файлов изображений
+    image_files = [
+        'static/images/dark_hoodie_front.jpg',
+        'static/images/dark_hoodie_back.png',
+        'static/images/gray_hoodie_front.jpg',
+        'static/images/gray_hoodie_back.jpg',
+        'static/images/about.jpg'
+    ]
+    
+    print("\n📸 Проверка файлов изображений:")
+    for img_file in image_files:
+        exists = os.path.exists(img_file)
+        status = '✅ СУЩЕСТВУЕТ' if exists else '❌ НЕ СУЩЕСТВУЕТ'
+        print(f"  {img_file}: {status}")
+    
+    print(f"\n🔑 Telegram Token установлен: {'✅' if TELEGRAM_BOT_TOKEN != 'YOUR_BOT_TOKEN' else '❌'}")
     print(f"👤 Chat ID установлен: {'✅' if TELEGRAM_CHAT_ID != 'YOUR_CHAT_ID' else '❌'}")
     print("=" * 50)
     print(f"🌐 Сервер запущен: http://localhost:{port}")
@@ -542,7 +558,5 @@ if __name__ == '__main__':
     print(f"❤️  Проверка здоровья: http://localhost:{port}/health")
     print("=" * 50)
     
-
-    
-    # Важно: debug=False для продакшена!
-    app.run(host='0.0.0.0', port=port, debug=False)
+    # Важно: debug=True для разработки, debug=False для продакшена!
+    app.run(host='0.0.0.0', port=port, debug=True)
