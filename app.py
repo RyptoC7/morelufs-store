@@ -1,19 +1,9 @@
-from flask import Flask, send_file, jsonify, request, send_from_directory, make_response
-from flask_cors import CORS
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-from flask_compress import Compress
+from flask import Flask, send_file, jsonify, request, send_from_directory
 import os
 import requests
 import logging
-import json
-import time
 from datetime import datetime
 from dotenv import load_dotenv
-import gzip
-from functools import wraps
-import redis
-from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Загружаем переменные окружения
 load_dotenv()
@@ -21,178 +11,64 @@ load_dotenv()
 # Создаем приложение Flask
 app = Flask(__name__, static_folder='static')
 
-# Middleware для правильного определения IP за прокси
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
-
-# Включаем CORS для API
-CORS(app, resources={
-    r"/api/*": {
-        "origins": ["*"],
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
-    }
-})
-
-# Включаем сжатие Gzip
-Compress(app)
-
-# Настройка лимитера запросов
-limiter = Limiter(
-    get_remote_address,
-    app=app,
-    default_limits=["200 per day", "50 per hour"],
-    storage_uri="memory://",  # Для продакшена лучше использовать Redis
-    strategy="fixed-window"
-)
-
 # Конфигурация
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', 'YOUR_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID', 'YOUR_CHAT_ID')
 
-# Конфигурация Redis для кэширования (опционально)
-REDIS_URL = os.getenv('REDIS_URL')
-redis_client = None
-if REDIS_URL:
-    try:
-        redis_client = redis.from_url(REDIS_URL, decode_responses=True)
-        app.logger.info("Redis подключен для кэширования")
-    except Exception as e:
-        app.logger.warning(f"Не удалось подключиться к Redis: {e}")
-        redis_client = None
-
 # Настройка логирования
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Кэширование ответов
-def cache_response(timeout=300):
-    """Декоратор для кэширования ответов"""
-    def decorator(f):
-        @wraps(f)
-        def decorated_function(*args, **kwargs):
-            if not redis_client:
-                return f(*args, **kwargs)
-            
-            cache_key = f"{request.path}:{hash(frozenset(request.args.items()))}"
-            cached_response = redis_client.get(cache_key)
-            
-            if cached_response:
-                app.logger.debug(f"Cache hit for {cache_key}")
-                response = make_response(cached_response)
-                response.headers['X-Cache'] = 'HIT'
-                return response
-            
-            response = f(*args, **kwargs)
-            
-            # Кэшируем только успешные GET запросы
-            if request.method == 'GET' and response.status_code == 200:
-                try:
-                    redis_client.setex(
-                        cache_key,
-                        timeout,
-                        response.get_data(as_text=True)
-                    )
-                    response.headers['X-Cache'] = 'MISS'
-                except Exception as e:
-                    app.logger.warning(f"Failed to cache response: {e}")
-            
-            return response
-        return decorated_function
-    return decorator
-
 def send_telegram_message(message):
-    """Отправка сообщения в Telegram с таймаутом и повторными попытками"""
-    if not TELEGRAM_BOT_TOKEN or TELEGRAM_BOT_TOKEN == 'YOUR_BOT_TOKEN':
-        logger.warning("Telegram bot token не установлен")
+    """Отправка сообщения в Telegram"""
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        payload = {
+            'chat_id': TELEGRAM_CHAT_ID,
+            'text': message,
+            'parse_mode': 'HTML'
+        }
+        response = requests.post(url, json=payload, timeout=10)
+        return response.status_code == 200
+    except Exception as e:
+        logger.error(f"Ошибка отправки в Telegram: {e}")
         return False
-    
-    if not TELEGRAM_CHAT_ID or TELEGRAM_CHAT_ID == 'YOUR_CHAT_ID':
-        logger.warning("Telegram chat ID не установлен")
-        return False
-    
-    max_retries = 3
-    for attempt in range(max_retries):
-        try:
-            url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-            payload = {
-                'chat_id': TELEGRAM_CHAT_ID,
-                'text': message,
-                'parse_mode': 'HTML',
-                'disable_web_page_preview': True
-            }
-            
-            # Уменьшаем таймаут для телеграм API
-            response = requests.post(
-                url, 
-                json=payload, 
-                timeout=(3.05, 10)  # connect timeout, read timeout
-            )
-            
-            if response.status_code == 200:
-                logger.info("Сообщение успешно отправлено в Telegram")
-                return True
-            else:
-                logger.warning(f"Telegram API вернул ошибку: {response.status_code}")
-                if attempt < max_retries - 1:
-                    time.sleep(1)  # Задержка перед повторной попыткой
-        
-        except requests.exceptions.Timeout:
-            logger.warning(f"Таймаут при отправке в Telegram (попытка {attempt + 1})")
-            if attempt < max_retries - 1:
-                time.sleep(2)
-        
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Ошибка сети при отправке в Telegram: {e}")
-            if attempt < max_retries - 1:
-                time.sleep(2)
-        
-        except Exception as e:
-            logger.error(f"Неожиданная ошибка при отправке в Telegram: {e}")
-            break
-    
-    logger.error("Не удалось отправить сообщение в Telegram после всех попыток")
-    return False
 
 def format_order_message(order_data):
     """Форматирование сообщения о заказе"""
-    try:
-        customer = order_data.get('customer', {})
-        items = order_data.get('items', [])
-        delivery = order_data.get('delivery', {})
-        
-        # Формируем список товаров
-        items_text = "\n".join([
-            f"• {item.get('title', 'Товар')} (Размер: {item.get('size', 'N/A')}) "
-            f"× {item.get('quantity', 1)} - {item.get('price', 0) * item.get('quantity', 1)} ₽" 
-            for item in items
-        ]) if items else "• Нет товаров"
-        
-        # Считаем сумму товаров
-        items_total = sum(item.get('price', 0) * item.get('quantity', 1) for item in items)
-        
-        message = f"""<b>🛍️ НОВЫЙ ЗАКАЗ!</b>
+    customer = order_data['customer']
+    items = order_data['items']
+    delivery = order_data['delivery']
+    
+    # Формируем список товаров
+    items_text = "\n".join([
+        f"• {item['title']} (Размер: {item['size']}) × {item['quantity']} - {item['price'] * item['quantity']} ₽" 
+        for item in items
+    ])
+    
+    # Считаем сумму товаров
+    items_total = sum(item['price'] * item['quantity'] for item in items)
+    
+    message = f"""<b>🛍️ НОВЫЙ ЗАКАЗ!</b>
 
 <b>📦 Товары:</b>
 {items_text}
 
 <b>💰 Сумма:</b>
 Товары: {items_total} ₽
-Доставка: {delivery.get('price', 0)} ₽
-<b>Итого: {order_data.get('total', 0)} ₽</b>
+Доставка: {delivery['price']} ₽
+<b>Итого: {order_data['total']} ₽</b>
 
 <b>🚚 Доставка:</b>
-{delivery.get('method', 'Не выбран')}
-Город: {customer.get('address', {}).get('city', 'Не указан')}
-Адрес: {customer.get('address', {}).get('address', 'Не указан')}
-Индекс: {customer.get('address', {}).get('postalCode', 'Не указан')}
+{delivery['method']}
+Город: {customer['address']['city']}
+Адрес: {customer['address']['address']}
+Индекс: {customer['address']['postalCode']}
 
 <b>👤 Клиент:</b>
-{customer.get('name', 'Не указан')}
-📞 {customer.get('phone', 'Не указан')}
-📧 {customer.get('email', 'Не указан')}
+{customer['name']}
+📞 {customer['phone']}
+📧 {customer['email']}
 
 <b>💬 Комментарий:</b>
 {order_data.get('comments', 'Нет комментария')}
@@ -200,169 +76,88 @@ def format_order_message(order_data):
 <b>💳 Способ оплаты:</b>
 {order_data.get('payment_method', 'Не выбран')}
 
-<i>🕒 {order_data.get('timestamp', datetime.now().strftime("%d.%m.%Y %H:%M"))}</i>"""
-        
-        return message
+<i>🕒 {order_data.get('timestamp', '')}</i>"""
     
-    except Exception as e:
-        logger.error(f"Ошибка при форматировании сообщения: {e}")
-        return f"<b>Новый заказ!</b>\nПроизошла ошибка при формировании деталей."
+    return message
 
-# Middleware для измерения времени ответа
-@app.before_request
-def before_request():
-    request.start_time = time.time()
-
-@app.after_request
-def after_request(response):
-    if hasattr(request, 'start_time'):
-        elapsed = time.time() - request.start_time
-        logger.info(f"{request.method} {request.path} - {response.status_code} - {elapsed:.3f}s")
-        response.headers['X-Response-Time'] = f'{elapsed:.3f}s'
-    
-    # Безопасные заголовки
-    response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['X-Frame-Options'] = 'DENY'
-    response.headers['X-XSS-Protection'] = '1; mode=block'
-    
-    # Для SPA важно разрешить загрузку скриптов
-    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' https://telegram.org https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:;"
-    
-    return response
-
-# ========== СТАТИЧЕСКИЕ ФАЙЛЫ С ОПТИМИЗАЦИЕЙ ==========
+# ========== СТАТИЧЕСКИЕ ФАЙЛЫ ==========
 
 @app.route('/')
-@cache_response(timeout=3600)  # Кэшируем главную страницу на 1 час
 def index():
     """Главная страница - отдаем index.html"""
-    response = send_file('index.html')
-    response.headers['Cache-Control'] = 'public, max-age=3600'
-    return response
+    return send_file('index.html')
 
-@app.route('/static/<path:filename>')
-def serve_static(filename):
-    """Отдаем статические файлы с кэшированием"""
-    try:
-        response = send_from_directory('static', filename)
-        
-        # Настраиваем кэширование в зависимости от типа файла
-        if filename.endswith(('.css', '.js')):
-            response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'  # 1 год
-        elif filename.endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp')):
-            response.headers['Cache-Control'] = 'public, max-age=604800'  # 1 неделя
-        else:
-            response.headers['Cache-Control'] = 'public, max-age=3600'  # 1 час
-        
-        return response
-    except Exception as e:
-        logger.error(f"Error serving static file {filename}: {e}")
-        return jsonify({'error': 'File not found'}), 404
+@app.route('/static/<path:path>')
+def serve_static(path):
+    """Отдаем статические файлы из папки static"""
+    return send_from_directory('static', path)
 
 # ========== ВАЖНО: SPA маршрутизация ==========
 @app.route('/<path:path>')
 def catch_all(path):
     """Обрабатываем ВСЕ маршруты для SPA (Single Page Application)"""
-    # Игнорируем известные расширения файлов
-    if '.' in path and path.split('.')[-1] in ['ico', 'css', 'js', 'jpg', 'png', 'svg', 'json']:
-        return jsonify({'error': 'Not found'}), 404
+    # Список реальных файлов
+    real_files = ['index.html', 'style.css', 'script.js', 'favicon.ico']
+    
+    # Если запрашивают реальный файл
+    if path in real_files and os.path.exists(path):
+        return send_file(path)
+    
+    # Если запрашивают файл из static
+    if path.startswith('static/') and os.path.exists(path):
+        return send_from_directory('.', path)
     
     # Для ВСЕХ остальных маршрутов возвращаем index.html
-    response = send_file('index.html')
-    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-    return response
+    # (позволяет работать Vue/React/Angular роутингу)
+    return send_file('index.html')
 
-# ========== API МАРШРУТЫ С ОПТИМИЗАЦИЕЙ ==========
+# ========== API МАРШРУТЫ ==========
 
 @app.route('/api/order', methods=['POST'])
-@limiter.limit("10 per minute")  # Ограничиваем 10 заказов в минуту
 def create_order():
-    """Создание нового заказа"""
     try:
-        # Проверяем размер запроса
-        if request.content_length and request.content_length > 1024 * 10:  # 10KB max
-            return jsonify({'success': False, 'error': 'Request too large'}), 413
+        data = request.json
         
-        data = request.get_json(silent=True)
-        if not data:
-            return jsonify({'success': False, 'error': 'Invalid JSON'}), 400
-        
-        # Быстрая валидация данных
-        required_fields = ['customer', 'items']
+        # Валидация данных
+        required_fields = ['customer', 'items', 'total', 'delivery']
         if not all(field in data for field in required_fields):
             return jsonify({'success': False, 'error': 'Missing required fields'}), 400
         
-        customer = data.get('customer', {})
-        if not all(k in customer for k in ['name', 'phone', 'email']):
+        customer = data['customer']
+        if not all(k in customer for k in ['name', 'phone', 'email', 'address']):
             return jsonify({'success': False, 'error': 'Missing customer information'}), 400
         
-        # Проверяем товары
-        items = data.get('items', [])
-        if not items or len(items) == 0:
-            return jsonify({'success': False, 'error': 'Cart is empty'}), 400
+        # Добавляем timestamp
+        data['timestamp'] = datetime.now().strftime("%d.%m.%Y %H:%M")
         
-        # Добавляем timestamp и ID заказа
-        order_timestamp = datetime.now()
-        order_id = int(order_timestamp.timestamp())
-        data['timestamp'] = order_timestamp.strftime("%d.%m.%Y %H:%M")
-        data['order_id'] = order_id
-        
-        # Рассчитываем итоговую сумму если не указана
-        if 'total' not in data:
-            items_total = sum(item.get('price', 0) * item.get('quantity', 1) for item in items)
-            delivery_price = data.get('delivery', {}).get('price', 0)
-            discount = data.get('discount', 0)
-            data['total'] = items_total + delivery_price - discount
-        
-        # Отправляем заказ в Telegram (асинхронно)
-        try:
-            message = format_order_message(data)
-            # Запускаем в отдельном потоке, чтобы не блокировать ответ
-            import threading
-            thread = threading.Thread(target=send_telegram_message, args=(message,))
-            thread.daemon = True
-            thread.start()
-        except Exception as e:
-            logger.error(f"Ошибка при подготовке Telegram сообщения: {e}")
-            # Не прерываем выполнение если не удалось отправить в Telegram
-        
-        # Логируем заказ (в продакшене можно сохранять в БД)
-        logger.info(f"Order created: ID={order_id}, Total={data['total']}, Customer={customer.get('name')}")
-        
-        # Возвращаем успешный ответ
-        response_data = {
-            'success': True, 
-            'order_id': order_id,
-            'message': 'Order created successfully',
-            'timestamp': data['timestamp']
-        }
-        
-        return jsonify(response_data)
+        # Отправляем заказ в Telegram
+        message = format_order_message(data)
+        if send_telegram_message(message):
+            logger.info(f"Заказ отправлен в Telegram")
+            return jsonify({
+                'success': True, 
+                'order_id': int(datetime.now().timestamp()),
+                'message': 'Order created successfully'
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Failed to send to Telegram'}), 500
         
     except Exception as e:
         logger.error(f"Ошибка при создании заказа: {e}")
-        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/create-payment', methods=['POST'])
-@limiter.limit("20 per minute")
 def create_payment():
-    """Создание платежа"""
     try:
-        data = request.get_json(silent=True)
-        if not data:
-            return jsonify({'success': False, 'error': 'Invalid JSON'}), 400
-        
+        data = request.json
         order_id = data.get('order_id')
-        amount = data.get('amount', 0)
+        amount = data.get('amount')
         payment_method = data.get('payment_method', 'yookassa')
-        
-        if not order_id or amount <= 0:
-            return jsonify({'success': False, 'error': 'Invalid order data'}), 400
         
         # Генерация URL оплаты
         if payment_method == 'crypto':
             # Крипто-оплата со скидкой 200₽
-            crypto_amount = max(0, amount - 200)  # Скидка 200₽, но не меньше 0
+            crypto_amount = amount - 200  # Скидка 200₽
             
             return jsonify({
                 'success': True,
@@ -374,56 +169,39 @@ def create_payment():
         
         else:
             # Заглушка для тестирования
-            # В реальном приложении здесь будет интеграция с платежными системами
             return jsonify({
                 'success': True,
                 'payment_url': f"/payment/success?order_id={order_id}",
-                'payment_id': f"test_{order_id}",
-                'amount': amount
+                'payment_id': f"test_{order_id}"
             })
             
     except Exception as e:
         logger.error(f"Payment creation error: {e}")
-        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/address-suggestions', methods=['POST'])
-@limiter.limit("30 per minute")
-@cache_response(timeout=86400)  # Кэшируем на 1 день
 def address_suggestions():
-    """Автодополнение адресов"""
     try:
-        data = request.get_json(silent=True)
-        if not data:
+        data = request.json
+        query = data.get('query', '')
+        
+        if len(query) < 3:
             return jsonify({'suggestions': []})
         
-        query = data.get('query', '').strip()
-        
-        if len(query) < 2:
-            return jsonify({'suggestions': []})
-        
-        # В реальном приложении здесь будет интеграция с API геокодера
-        # (Яндекс.Карты, Google Maps, DaData и т.д.)
-        
-        # Заглушка для тестирования
+        # Заглушка для автодополнения адресов
         mock_suggestions = [
             {'value': f'{query}, улица Примерная, дом 1'},
             {'value': f'{query}, проспект Тестовый, дом 15'},
             {'value': f'{query}, бульвар Демонстрационный, дом 25'}
         ]
-        
-        return jsonify({
-            'suggestions': mock_suggestions[:3],  # Ограничиваем 3 предложениями
-            'query': query
-        })
+        return jsonify({'suggestions': mock_suggestions})
             
     except Exception as e:
         logger.error(f"Address suggestions error: {e}")
         return jsonify({'suggestions': []})
 
 @app.route('/api/products')
-@cache_response(timeout=3600)  # Кэшируем продукты на 1 час
 def get_products():
-    """Получение списка продуктов"""
     products = [
         {
             'id': 'dark',
@@ -433,9 +211,7 @@ def get_products():
             'images': {
                 'front': '/static/images/dark_hoodie_front.jpg',
                 'back': '/static/images/dark_hoodie_back.png'
-            },
-            'sizes': ['S', 'M', 'L'],
-            'in_stock': True
+            }
         },
         {
             'id': 'gray', 
@@ -445,30 +221,23 @@ def get_products():
             'images': {
                 'front': '/static/images/gray_hoodie_front.jpg',
                 'back': '/static/images/gray_hoodie_back.jpg'
-            },
-            'sizes': ['S', 'M', 'L'],
-            'in_stock': True
+            }
         }
     ]
-    
-    response = jsonify(products)
-    response.headers['Cache-Control'] = 'public, max-age=3600'
-    return response
+    return jsonify(products)
 
-# ========== СТРАНИЦЫ ОПЛАТЫ С ОПТИМИЗАЦИЕЙ ==========
+# ========== СТРАНИЦЫ ОПЛАТЫ ==========
 
 @app.route('/payment/success')
-@cache_response(timeout=300)  # Короткое кэширование
 def payment_success():
-    """Страница успешной оплаты"""
-    order_id = request.args.get('order_id', '')
+    order_id = request.args.get('order_id')
     
-    html = f'''<!DOCTYPE html>
+    return f'''
+    <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex, nofollow">
     <title>Оплата успешна - MORELUFS</title>
     <style>
         body {{
@@ -551,35 +320,22 @@ def payment_success():
                 window.close();
             }}
         }}
-        
-        // Автоматическое закрытие через 5 секунд
-        setTimeout(closeWindow, 5000);
     </script>
 </body>
-</html>'''
-    
-    response = make_response(html)
-    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-    return response
+</html>
+    '''
 
 @app.route('/crypto-payment')
-@cache_response(timeout=300)
 def crypto_payment():
-    """Страница оплаты криптовалютой"""
     amount = request.args.get('amount', 0)
-    order_id = request.args.get('order_id', '')
+    order_id = request.args.get('order_id')
     
-    try:
-        amount_int = int(float(amount))
-    except (ValueError, TypeError):
-        amount_int = 0
-    
-    html = f'''<!DOCTYPE html>
+    return f'''
+    <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex, nofollow">
     <title>Оплата криптовалютой - MORELUFS</title>
     <style>
         body {{
@@ -670,7 +426,7 @@ def crypto_payment():
         <div class="info-box">
             <div class="info-row">
                 <span>Сумма заказа:</span>
-                <span>{amount_int + 200} ₽</span>
+                <span>{int(float(amount)) + 200} ₽</span>
             </div>
             <div class="info-row discount">
                 <span>Скидка за крипту:</span>
@@ -678,7 +434,7 @@ def crypto_payment():
             </div>
             <div class="info-row" style="font-weight: 600; font-size: 16px;">
                 <span>К оплате:</span>
-                <span>{amount_int} ₽</span>
+                <span>{int(float(amount))} ₽</span>
             </div>
         </div>
         
@@ -715,8 +471,6 @@ def crypto_payment():
             if (timeLeft > 0) {{
                 timeLeft--;
                 setTimeout(updateTimer, 1000);
-            }} else {{
-                document.getElementById('timer').textContent = 'Время истекло';
             }}
         }}
         
@@ -727,146 +481,68 @@ def crypto_payment():
         updateTimer();
     </script>
 </body>
-</html>'''
-    
-    response = make_response(html)
-    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-    return response
+</html>
+    '''
 
 # ========== СЛУЖЕБНЫЕ МАРШРУТЫ ==========
 
 @app.route('/health')
 def health_check():
-    """Проверка здоровья сервера"""
-    health_status = {
+    return jsonify({
         'status': 'healthy', 
         'service': 'Morelufs Telegram API',
-        'timestamp': datetime.now().isoformat(),
-        'version': '1.0.0',
-        'dependencies': {
-            'static_files': os.path.exists('static'),
-            'templates': os.path.exists('index.html'),
-            'telegram_token': bool(TELEGRAM_BOT_TOKEN and TELEGRAM_BOT_TOKEN != 'YOUR_BOT_TOKEN'),
-            'redis': redis_client is not None and redis_client.ping()
-        },
-        'resources': {
-            'memory': os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES') if hasattr(os, 'sysconf') else 'unknown'
-        }
-    }
-    
-    response = jsonify(health_status)
-    response.headers['Cache-Control'] = 'no-cache'
-    return response
+        'static_files': os.path.exists('static'),
+        'templates': os.path.exists('index.html')
+    })
 
 @app.route('/api/debug')
-@limiter.exempt
 def debug_info():
     """Информация для отладки"""
-    debug_info = {
+    return jsonify({
         'telegram_token_set': bool(TELEGRAM_BOT_TOKEN and TELEGRAM_BOT_TOKEN != 'YOUR_BOT_TOKEN'),
         'chat_id_set': bool(TELEGRAM_CHAT_ID and TELEGRAM_CHAT_ID != 'YOUR_CHAT_ID'),
         'current_time': datetime.now().isoformat(),
         'working_directory': os.getcwd(),
-        'environment': os.environ.get('FLASK_ENV', 'production'),
-        'python_version': os.sys.version,
-        'headers': dict(request.headers),
-        'client_ip': request.remote_addr
-    }
-    
-    # Безопасно показываем список файлов
-    try:
-        debug_info['files_in_directory'] = os.listdir('.')
-    except Exception as e:
-        debug_info['files_in_directory_error'] = str(e)
-    
-    response = jsonify(debug_info)
-    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-    return response
+        'files_in_directory': os.listdir('.')
+    })
 
 # ========== ОБРАБОТКА ОШИБОК ==========
 
 @app.errorhandler(404)
 def not_found(e):
-    """Обработка 404 ошибки"""
-    if request.path.startswith('/api/'):
-        return jsonify({'error': 'API endpoint not found'}), 404
-    
-    # Для SPA возвращаем index.html
-    response = send_file('index.html')
-    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-    return response
-
-@app.errorhandler(429)
-def ratelimit_handler(e):
-    """Обработка превышения лимита запросов"""
-    return jsonify({
-        'success': False, 
-        'error': 'Too many requests',
-        'message': 'Пожалуйста, попробуйте позже'
-    }), 429
+    """Обработка 404 ошибки - возвращаем index.html для SPA"""
+    return send_file('index.html')
 
 @app.errorhandler(500)
 def internal_error(e):
     """Обработка 500 ошибки"""
-    logger.error(f"Internal server error: {e}")
-    return jsonify({'error': 'Internal server error', 'message': 'Пожалуйста, попробуйте позже'}), 500
-
-@app.errorhandler(Exception)
-def handle_all_exceptions(e):
-    """Обработка всех необработанных исключений"""
-    logger.error(f"Unhandled exception: {e}", exc_info=True)
-    return jsonify({'error': 'Internal server error'}), 500
+    return jsonify({'error': 'Internal server error', 'message': str(e)}), 500
 
 # ========== ЗАПУСК СЕРВЕРА ==========
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
-    debug_mode = os.getenv('FLASK_ENV', 'production') == 'development'
     
     # Создаем папку static если её нет
     if not os.path.exists('static'):
         os.makedirs('static')
-        logger.info("Создана папка static/")
-    
-    # Проверяем необходимые файлы
-    required_files = ['index.html', 'style.css', 'script.js']
-    missing_files = [f for f in required_files if not os.path.exists(f)]
-    
-    if missing_files:
-        logger.warning(f"Отсутствуют файлы: {missing_files}")
-    
-    # Проверка файлов изображений
-    image_files = [
-        'static/images/dark_hoodie_front.jpg',
-        'static/images/dark_hoodie_back.png',
-        'static/images/gray_hoodie_front.jpg',
-        'static/images/gray_hoodie_back.jpg',
-        'static/images/about.jpg'
-    ]
-    
-    for img_file in image_files:
-        if not os.path.exists(img_file):
-            logger.warning(f"Отсутствует изображение: {img_file}")
+        print("Создана папка static/")
     
     print("=" * 50)
-    print("🚀 MORELUFS Telegram Mini App Server")
+    print("MORELUFS Telegram Mini App Server")
     print("=" * 50)
     print(f"📁 Текущая директория: {os.getcwd()}")
-    print(f"🔧 Режим: {'development' if debug_mode else 'production'}")
-    print(f"🔑 Telegram Token: {'✅ Установлен' if TELEGRAM_BOT_TOKEN != 'YOUR_BOT_TOKEN' else '❌ Не установлен'}")
-    print(f"👤 Chat ID: {'✅ Установлен' if TELEGRAM_CHAT_ID != 'YOUR_CHAT_ID' else '❌ Не установлен'}")
-    print(f"🔄 Redis кэш: {'✅ Включен' if redis_client else '❌ Выключен'}")
+    print(f"📁 Существует index.html: {os.path.exists('index.html')}")
+    print(f"📁 Существует static/: {os.path.exists('static')}")
+    print(f"🔑 Telegram Token установлен: {'✅' if TELEGRAM_BOT_TOKEN != 'YOUR_BOT_TOKEN' else '❌'}")
+    print(f"👤 Chat ID установлен: {'✅' if TELEGRAM_CHAT_ID != 'YOUR_CHAT_ID' else '❌'}")
     print("=" * 50)
     print(f"🌐 Сервер запущен: http://localhost:{port}")
-    print(f"📊 API доступно: http://localhost:{port}/api/products")
+    print(f"🔧 API доступно: http://localhost:{port}/api/products")
     print(f"❤️  Проверка здоровья: http://localhost:{port}/health")
     print("=" * 50)
     
-    # Запускаем сервер
-    app.run(
-        host='0.0.0.0', 
-        port=port, 
-        debug=debug_mode,
-        threaded=True,  # Поддержка многопоточности
-        use_reloader=debug_mode  # Перезагрузка при изменении кода только в режиме разработки
-    )
+
+    
+    # Важно: debug=False для продакшена!
+    app.run(host='0.0.0.0', port=port, debug=False)
