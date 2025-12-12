@@ -35,7 +35,6 @@ body {
     position: relative;
     cursor: pointer;
     overflow: hidden;
-    transition: all 0.3s ease;
     height: 50vh;
 }
 
@@ -55,6 +54,8 @@ body {
     top: 0;
     left: 0;
     transition: opacity 0.3s ease;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
 }
 
 .product-back {
@@ -157,7 +158,7 @@ body {
 
 .product-image-main {
     width: 100%;
-    height: 400px; /* Уменьшенная высота */
+    height: 400px;
     border-radius: 12px;
     overflow: hidden;
     position: relative;
@@ -173,6 +174,8 @@ body {
     left: 0;
     transition: opacity 0.3s ease;
     opacity: 0;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
 }
 
 .product-image-main img.active {
@@ -290,29 +293,16 @@ body {
     cursor: not-allowed;
 }
 
-/* Анимация кнопки */
-@keyframes pulse {
+/* Улучшенная быстрая анимация кнопки */
+@keyframes quickPulse {
     0% { transform: scale(1); }
-    50% { transform: scale(0.95); }
+    50% { transform: scale(0.97); }
     100% { transform: scale(1); }
 }
 
-@keyframes fadeBorder {
-    0% { border-color: #ffffff; }
-    50% { border-color: #666; }
-    100% { border-color: #ffffff; }
-}
-
 .add-to-cart-detail-btn.added {
-    animation: pulse 0.5s ease;
-}
-
-.add-to-cart-detail-btn.adding {
-    opacity: 0.5;
-    border: 2px solid #ffffff;
-    background: #111;
-    color: #fff;
-    animation: fadeBorder 1s infinite;
+    background-color: #22c55e !important;
+    animation: quickPulse 0.3s ease !important;
 }
 
 .product-description {
@@ -362,6 +352,7 @@ body {
 
 .cart-sidebar.active {
     right: 0;
+    animation: simpleSlideIn 0.3s ease forwards;
 }
 
 .cart-header {
@@ -412,6 +403,7 @@ body {
     flex: 1;
     padding: 20px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .empty-cart {
@@ -576,6 +568,38 @@ body {
     border: 2px solid #000000;
 }
 
+/* About Button */
+.about-button-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 999;
+}
+
+.about-button {
+    width: 56px;
+    height: 56px;
+    background: #333;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease;
+}
+
+.about-button:hover {
+    transform: scale(1.1);
+    background: #444;
+}
+
+.about-button i {
+    font-size: 20px;
+    color: #ffffff;
+}
+
 /* Checkout Page */
 .checkout-page {
     display: none;
@@ -586,6 +610,12 @@ body {
 
 .checkout-page.active {
     display: block;
+}
+
+/* Скрываем кнопки на странице оформления заказа */
+.checkout-page ~ .cart-button-container,
+.checkout-page ~ .about-button-container {
+    display: none !important;
 }
 
 .checkout-container {
@@ -858,6 +888,7 @@ body {
 
 .about-modal.active {
     display: flex;
+    animation: fadeIn 0.3s ease forwards;
 }
 
 .about-modal-content {
@@ -916,6 +947,8 @@ body {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
 }
 
 .about-text h3 {
@@ -958,38 +991,6 @@ body {
 .social-link:hover {
     background-color: #333;
     transform: scale(1.1);
-}
-
-/* About Button */
-.about-button-container {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 999;
-}
-
-.about-button {
-    width: 56px;
-    height: 56px;
-    background: #333;
-    border: none;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    transition: transform 0.3s ease;
-}
-
-.about-button:hover {
-    transform: scale(1.1);
-    background: #444;
-}
-
-.about-button i {
-    font-size: 20px;
-    color: #ffffff;
 }
 
 /* Responsive */
@@ -1117,6 +1118,18 @@ body {
         width: 12px;
         height: 12px;
     }
+    
+    /* Отключаем hover эффекты на тач-устройствах */
+    .cart-item:hover {
+        background: transparent;
+        padding-left: 0;
+        padding-right: 0;
+    }
+    
+    .delivery-method:hover {
+        border-color: #333;
+        background: #1a1a1a;
+    }
 }
 
 /* Безопасные зоны для iPhone X+ */
@@ -1139,30 +1152,13 @@ body {
     }
 }
 
-.cart-sidebar.active {
-    animation: slideIn 0.3s ease forwards;
-}
-
-.about-modal.active {
-    animation: fadeIn 0.3s ease forwards;
-}
-
 /* Анимации */
-@keyframes slideIn {
+@keyframes simpleSlideIn {
     from {
         transform: translateX(100%);
     }
     to {
         transform: translateX(0);
-    }
-}
-
-@keyframes slideOut {
-    from {
-        transform: translateX(0);
-    }
-    to {
-        transform: translateX(100%);
     }
 }
 
@@ -1298,6 +1294,72 @@ body {
     outline-offset: 2px;
 }
 
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+    .size-option.selected {
+        background-color: #000;
+        color: #fff;
+        border: 2px solid #fff;
+    }
+    
+    .add-to-cart-detail-btn {
+        background-color: #fff;
+        color: #000;
+        border: 2px solid #000;
+    }
+    
+    .cart-button {
+        border: 2px solid #000;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Оптимизация производительности */
+* {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.tg-app {
+    will-change: transform;
+    contain: layout style paint;
+}
+
+.add-to-cart-detail-btn,
+.size-option,
+.quantity-btn {
+    will-change: transform, opacity;
+}
+
+/* Отключение ненужных эффектов на мобильных */
+@media (max-width: 768px) {
+    .product-half .product-image-full::after {
+        display: none;
+    }
+    
+    .product-half:hover .product-front,
+    .product-half:hover .product-back {
+        opacity: 1;
+    }
+}
+
+.checkout-container {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+}
+
 /* Product Image Hover Effect */
 .product-half .product-image-full::after {
     content: '';
@@ -1313,14 +1375,6 @@ body {
 
 .product-half:hover .product-image-full::after {
     background: rgba(0, 0, 0, 0.3);
-}
-
-/* Cart Item Hover Effect */
-.cart-item:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 8px;
-    padding-left: 10px;
-    padding-right: 10px;
 }
 
 /* Delivery Method Selected State */
@@ -1369,35 +1423,5 @@ body {
     
     .detail-title {
         font-size: 18px;
-    }
-}
-
-/* High Contrast Mode */
-@media (prefers-contrast: high) {
-    .size-option.selected {
-        background-color: #000;
-        color: #fff;
-        border: 2px solid #fff;
-    }
-    
-    .add-to-cart-detail-btn {
-        background-color: #fff;
-        color: #000;
-        border: 2px solid #000;
-    }
-    
-    .cart-button {
-        border: 2px solid #000;
-    }
-}
-
-/* Reduced Motion */
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
     }
 }

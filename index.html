@@ -3,11 +3,23 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta charset="UTF-8">
+    <meta name="description" content="MORELUFS - одежда с характером. Dark и Gray Zip Hoodies.">
+    <meta name="keywords" content="MORELUFS, худи, одежда, streetwear">
+    <meta name="author" content="MORELUFS">
     <title>MORELUFS</title>
+    
+    <!-- Предзагрузка критических ресурсов -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://telegram.org">
+    
+    <!-- Основные стили -->
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
 </head>
 <body>
     <!-- Telegram Web App Container -->
@@ -19,11 +31,21 @@
                 <div class="products-split">
                     <div class="product-half dark-half" data-product="dark">
                         <div class="product-image-full">
-                            <!-- Dark Hoodie -->
+                            <!-- Dark Hoodie с оптимизацией -->
                             <img src="/static/images/dark_hoodie_front.jpg" 
-                                 alt="Dark Zip Hoodie" class="product-front">
+                                 alt="Dark Zip Hoodie" 
+                                 class="product-front"
+                                 width="600"
+                                 height="800"
+                                 loading="eager"
+                                 decoding="async">
                             <img src="/static/images/dark_hoodie_back.png" 
-                                 alt="Dark Zip Hoodie Back" class="product-back">
+                                 alt="Dark Zip Hoodie Back" 
+                                 class="product-back"
+                                 width="600"
+                                 height="800"
+                                 loading="lazy"
+                                 decoding="async">
                         </div>
                         <div class="product-info-full">
                             <h3 class="product-title">Dark Zip Hoodie</h3>
@@ -33,9 +55,19 @@
                     <div class="product-half gray-half" data-product="gray">
                         <div class="product-image-full">
                            <img src="/static/images/gray_hoodie_front.jpg" 
-                                alt="Gray Zip Hoodie" class="product-front">
+                                alt="Gray Zip Hoodie" 
+                                class="product-front"
+                                width="600"
+                                height="800"
+                                loading="eager"
+                                decoding="async">
                            <img src="/static/images/gray_hoodie_back.jpg" 
-                                alt="Gray Zip Hoodie Back" class="product-back">
+                                alt="Gray Zip Hoodie Back" 
+                                class="product-back"
+                                width="600"
+                                height="800"
+                                loading="lazy"
+                                decoding="async">
                         </div>
                         <div class="product-info-full">
                             <h3 class="product-title">Gray Zip Hoodie</h3>
@@ -48,7 +80,7 @@
             <!-- Product Detail Page -->
             <section class="product-detail-page" id="productDetailPage">
                 <div class="detail-header">
-                    <button class="back-btn" id="backBtn">
+                    <button class="back-btn" id="backBtn" aria-label="Назад">
                         <i class="fas fa-arrow-left"></i>
                     </button>
                     <div class="detail-title">MORELUFS</div>
@@ -57,12 +89,33 @@
                 <div class="product-detail-content">
                     <div class="product-gallery-simple">
                         <div class="product-image-main">
-                            <img id="detailProductImageFront" src="" alt="Front View" class="active">
-                            <img id="detailProductImageBack" src="" alt="Back View">
+                            <img id="detailProductImageFront" 
+                                 src="" 
+                                 alt="Front View" 
+                                 class="active"
+                                 width="600"
+                                 height="800"
+                                 loading="eager"
+                                 decoding="async">
+                            <img id="detailProductImageBack" 
+                                 src="" 
+                                 alt="Back View"
+                                 width="600"
+                                 height="800"
+                                 loading="lazy"
+                                 decoding="async">
                         </div>
-                        <div class="gallery-controls">
-                            <button class="gallery-btn active" data-view="front"></button>
-                            <button class="gallery-btn" data-view="back"></button>
+                        <div class="gallery-controls" role="tablist" aria-label="Выбор изображения товара">
+                            <button class="gallery-btn active" 
+                                    data-view="front" 
+                                    role="tab"
+                                    aria-label="Фото спереди"
+                                    aria-selected="true"></button>
+                            <button class="gallery-btn" 
+                                    data-view="back" 
+                                    role="tab"
+                                    aria-label="Фото сзади"
+                                    aria-selected="false"></button>
                         </div>
                     </div>
                     <div class="product-detail-info">
@@ -71,15 +124,28 @@
                         
                         <div class="size-selection">
                             <h3>Размер</h3>
-                            <div class="size-options">
-                                <button class="size-option" data-size="S">S</button>
-                                <button class="size-option" data-size="M">M</button>
-                                <button class="size-option" data-size="L">L</button>
+                            <div class="size-options" role="radiogroup" aria-label="Выбор размера">
+                                <button class="size-option" 
+                                        data-size="S" 
+                                        role="radio"
+                                        aria-label="Размер S">S</button>
+                                <button class="size-option" 
+                                        data-size="M" 
+                                        role="radio"
+                                        aria-label="Размер M">M</button>
+                                <button class="size-option" 
+                                        data-size="L" 
+                                        role="radio"
+                                        aria-label="Размер L">L</button>
                             </div>
                             <p class="size-guide">Модель 179 см / 5'10" носит размер М</p>
                         </div>
 
-                        <button class="add-to-cart-detail-btn" id="addToCartDetail">Добавить в корзину</button>
+                        <button class="add-to-cart-detail-btn" 
+                                id="addToCartDetail" 
+                                aria-label="Добавить в корзину">
+                            Добавить в корзину
+                        </button>
 
                         <div class="product-description">
                             <div class="description-section">
@@ -109,7 +175,7 @@
             <!-- Checkout Page -->
             <section class="checkout-page" id="checkoutPage">
                 <div class="checkout-header">
-                    <button class="back-to-cart-btn" id="backToCartBtn">
+                    <button class="back-to-cart-btn" id="backToCartBtn" aria-label="Вернуться в корзину">
                         <i class="fas fa-arrow-left"></i>
                     </button>
                     <h1 class="checkout-title">ОФОРМЛЕНИЕ ЗАКАЗА</h1>
@@ -119,13 +185,17 @@
                 <div class="checkout-container">
                     <div class="checkout-content">
                         <!-- Left Column - Form -->
-                        <div class="checkout-form">
+                        <form class="checkout-form" id="checkoutForm" novalidate>
                             <!-- Delivery Method -->
                             <div class="checkout-section">
                                 <h3>СПОСОБ ДОСТАВКИ</h3>
                                 <div class="delivery-methods">
                                     <label class="delivery-method">
-                                        <input type="radio" name="delivery" value="russian-post" checked>
+                                        <input type="radio" 
+                                               name="delivery" 
+                                               value="russian-post" 
+                                               checked
+                                               aria-label="Почта России">
                                         <span class="delivery-checkmark"></span>
                                         <span class="delivery-info">
                                             <strong>Почта России</strong>
@@ -133,7 +203,10 @@
                                         </span>
                                     </label>
                                     <label class="delivery-method">
-                                        <input type="radio" name="delivery" value="yandex-delivery">
+                                        <input type="radio" 
+                                               name="delivery" 
+                                               value="yandex-delivery"
+                                               aria-label="Яндекс Доставка">
                                         <span class="delivery-checkmark"></span>
                                         <span class="delivery-info">
                                             <strong>Яндекс Доставка</strong>
@@ -141,7 +214,10 @@
                                         </span>
                                     </label>
                                     <label class="delivery-method">
-                                        <input type="radio" name="delivery" value="cdek">
+                                        <input type="radio" 
+                                               name="delivery" 
+                                               value="cdek"
+                                               aria-label="СДЭК">
                                         <span class="delivery-checkmark"></span>
                                         <span class="delivery-info">
                                             <strong>СДЭК</strong>
@@ -156,7 +232,11 @@
                                 <h3>СПОСОБ ОПЛАТЫ</h3>
                                 <div class="delivery-methods">
                                     <label class="delivery-method">
-                                        <input type="radio" name="payment" value="yookassa" checked>
+                                        <input type="radio" 
+                                               name="payment" 
+                                               value="yookassa" 
+                                               checked
+                                               aria-label="ЮKassa">
                                         <span class="delivery-checkmark"></span>
                                         <span class="delivery-info">
                                             <strong>ЮKassa</strong>
@@ -164,7 +244,10 @@
                                         </span>
                                     </label>
                                     <label class="delivery-method">
-                                        <input type="radio" name="payment" value="crypto">
+                                        <input type="radio" 
+                                               name="payment" 
+                                               value="crypto"
+                                               aria-label="Криптовалюта">
                                         <span class="delivery-checkmark"></span>
                                         <span class="delivery-info">
                                             <strong>Криптовалюта</strong>
@@ -178,23 +261,45 @@
                             <div class="checkout-section">
                                 <h3>АДРЕС ДОСТАВКИ</h3>
                                 <div class="form-group">
-                                    <label>Страна</label>
-                                    <input type="text" id="country" value="Россия" readonly>
+                                    <label for="country">Страна</label>
+                                    <input type="text" 
+                                           id="country" 
+                                           value="Россия" 
+                                           readonly
+                                           aria-readonly="true">
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group">
-                                        <label>Город *</label>
-                                        <input type="text" id="city" placeholder="Введите город" required>
+                                        <label for="city">Город *</label>
+                                        <input type="text" 
+                                               id="city" 
+                                               placeholder="Введите город" 
+                                               required
+                                               aria-required="true"
+                                               autocomplete="address-level2">
                                     </div>
                                     <div class="form-group">
-                                        <label>Индекс *</label>
-                                        <input type="text" id="postalCode" placeholder="Почтовый индекс" required>
+                                        <label for="postalCode">Индекс *</label>
+                                        <input type="text" 
+                                               id="postalCode" 
+                                               placeholder="Почтовый индекс" 
+                                               required
+                                               aria-required="true"
+                                               autocomplete="postal-code">
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label>Адрес отделения доставки *</label>
-                                    <input type="text" id="address" placeholder="Введите адрес отделения" required>
-                                    <div class="address-suggestions" id="addressSuggestions"></div>
+                                    <label for="address">Адрес отделения доставки *</label>
+                                    <input type="text" 
+                                           id="address" 
+                                           placeholder="Введите адрес отделения" 
+                                           required
+                                           aria-required="true"
+                                           autocomplete="street-address">
+                                    <div class="address-suggestions" 
+                                         id="addressSuggestions" 
+                                         role="listbox"
+                                         aria-label="Предложения адресов"></div>
                                 </div>
                             </div>
 
@@ -202,17 +307,32 @@
                             <div class="checkout-section">
                                 <h3>ПОЛУЧАТЕЛЬ</h3>
                                 <div class="form-group">
-                                    <label>ФИО полностью *</label>
-                                    <input type="text" id="fullName" placeholder="Иванов Иван Иванович" required>
+                                    <label for="fullName">ФИО полностью *</label>
+                                    <input type="text" 
+                                           id="fullName" 
+                                           placeholder="Иванов Иван Иванович" 
+                                           required
+                                           aria-required="true"
+                                           autocomplete="name">
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group">
-                                        <label>Телефон *</label>
-                                        <input type="tel" id="phone" placeholder="+7 (900) 000-00-00" required>
+                                        <label for="phone">Телефон *</label>
+                                        <input type="tel" 
+                                               id="phone" 
+                                               placeholder="+7 (900) 000-00-00" 
+                                               required
+                                               aria-required="true"
+                                               autocomplete="tel">
                                     </div>
                                     <div class="form-group">
-                                        <label>Email *</label>
-                                        <input type="email" id="email" placeholder="your@email.com" required>
+                                        <label for="email">Email *</label>
+                                        <input type="email" 
+                                               id="email" 
+                                               placeholder="your@email.com" 
+                                               required
+                                               aria-required="true"
+                                               autocomplete="email">
                                     </div>
                                 </div>
                             </div>
@@ -221,16 +341,19 @@
                             <div class="checkout-section">
                                 <h3>КОММЕНТАРИЙ К ЗАКАЗУ</h3>
                                 <div class="form-group">
-                                    <textarea id="comments" placeholder="Введите ваш комментарий" rows="3"></textarea>
+                                    <textarea id="comments" 
+                                              placeholder="Введите ваш комментарий" 
+                                              rows="3"
+                                              aria-label="Комментарий к заказу"></textarea>
                                 </div>
                             </div>
-                        </div>
+                        </form>
 
                         <!-- Right Column - Order Summary -->
                         <div class="order-summary">
                             <div class="summary-card">
                                 <h3>ВАШ ЗАКАЗ</h3>
-                                <div class="order-items" id="checkoutItems">
+                                <div class="order-items" id="checkoutItems" role="list" aria-label="Товары в заказе">
                                     <!-- Items will be populated by JavaScript -->
                                 </div>
                                 
@@ -253,7 +376,10 @@
                                     </div>
                                 </div>
 
-                                <button class="pay-now-btn" id="payNowBtn">
+                                <button class="pay-now-btn" 
+                                        id="payNowBtn" 
+                                        type="button"
+                                        aria-label="Оплатить заказ">
                                     ОПЛАТИТЬ <span id="finalAmount">0 ₽</span>
                                 </button>
                             </div>
@@ -264,41 +390,57 @@
         </main>
 
         <!-- Cart Sidebar -->
-        <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-sidebar" id="cartSidebar" role="dialog" aria-label="Корзина покупок" aria-modal="true">
             <div class="cart-header">
-                <h2 class="cart-title">КОРЗИНА <span id="cartCount">0</span></h2>
-                <button class="cart-close" id="cartClose">×</button>
+                <h2 class="cart-title">КОРЗИНА <span id="cartCount" aria-live="polite">0</span></h2>
+                <button class="cart-close" 
+                        id="cartClose" 
+                        aria-label="Закрыть корзину">×</button>
             </div>
-            <div class="cart-items" id="cartItems">
+            <div class="cart-items" id="cartItems" role="list" aria-label="Товары в корзине">
                 <!-- Cart items will be added here -->
             </div>
             <div class="cart-total">
                 <div class="total-row">
                     <span>Итого:</span>
-                    <span id="totalPrice">0 ₽</span>
+                    <span id="totalPrice" aria-live="polite">0 ₽</span>
                 </div>
-                <button class="checkout-btn" id="checkoutBtn">ОФОРМИТЬ ЗАКАЗ</button>
+                <button class="checkout-btn" 
+                        id="checkoutBtn"
+                        aria-label="Перейти к оформлению заказа">ОФОРМИТЬ ЗАКАЗ</button>
             </div>
         </div>
 
         <!-- Cart Button (Floating) -->
-        <div class="cart-button-container">
-            <button class="cart-button" id="cartButton">
+        <div class="cart-button-container" id="cartButtonContainer">
+            <button class="cart-button" 
+                    id="cartButton" 
+                    aria-label="Открыть корзину"
+                    aria-expanded="false">
                 <i class="fas fa-shopping-bag"></i>
-                <span class="cart-button-count" id="cartButtonCount">0</span>
+                <span class="cart-button-count" 
+                      id="cartButtonCount" 
+                      aria-live="polite">0</span>
             </button>
         </div>
 
         <!-- About Modal -->
-        <div class="about-modal" id="aboutModal">
+        <div class="about-modal" id="aboutModal" role="dialog" aria-label="О MORELUFS" aria-modal="true">
             <div class="about-modal-content">
                 <div class="about-modal-header">
                     <h2>О MORELUFS</h2>
-                    <button class="about-modal-close" id="aboutModalClose">×</button>
+                    <button class="about-modal-close" 
+                            id="aboutModalClose" 
+                            aria-label="Закрыть информацию">×</button>
                 </div>
                 <div class="about-modal-body">
                     <div class="about-image">
-                        <img src="/static/images/about.jpg" alt="About Morelufs">
+                        <img src="/static/images/about.jpg" 
+                             alt="About Morelufs"
+                             width="600"
+                             height="400"
+                             loading="lazy"
+                             decoding="async">
                     </div>
                     <div class="about-text">
                         <h3>MORELUFS</h3>
@@ -306,23 +448,46 @@
                         <p>Morelufs - это личность, отражающая историю двух душ, одержимых, поглощенных, но не усопших в своей мечте. Пропитанные самобытностью своего маленького северного города, они рискнули и пересекли видимый горизонт, для того, чтобы их внутренний звук обрёл эхо.</p>
                         <p>Данная история нашла свое начало в двух, безгранично схожих между собой силуэтах, и обязательно найдет свое продолжение в каждом, кто хочет звучать.</p>
                     </div>
-                    <div class="about-social">
-                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-telegram"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-vk"></i></a>
+                    <div class="about-social" aria-label="Социальные сети">
+                        <a href="#" 
+                           class="social-link" 
+                           aria-label="Instagram"
+                           target="_blank"
+                           rel="noopener noreferrer"><i class="fab fa-instagram"></i></a>
+                        <a href="#" 
+                           class="social-link" 
+                           aria-label="Telegram"
+                           target="_blank"
+                           rel="noopener noreferrer"><i class="fab fa-telegram"></i></a>
+                        <a href="#" 
+                           class="social-link" 
+                           aria-label="ВКонтакте"
+                           target="_blank"
+                           rel="noopener noreferrer"><i class="fab fa-vk"></i></a>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- About Button (Floating) -->
-        <div class="about-button-container">
-            <button class="about-button" id="aboutButton">
+        <div class="about-button-container" id="aboutButtonContainer">
+            <button class="about-button" 
+                    id="aboutButton" 
+                    aria-label="Информация о MORELUFS"
+                    aria-expanded="false">
                 <i class="fas fa-info"></i>
             </button>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Основной JavaScript файл -->
+    <script src="script.js" defer></script>
+    
+    <!-- Скрытый контейнер для оптимизации изображений -->
+    <div style="display: none;">
+        <!-- Предзагрузка критических изображений для быстрого отображения -->
+        <link rel="preload" as="image" href="/static/images/dark_hoodie_front.jpg">
+        <link rel="preload" as="image" href="/static/images/gray_hoodie_front.jpg">
+    </div>
 </body>
 </html>
